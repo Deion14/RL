@@ -74,20 +74,24 @@ W= zeros(4, 5, 3);
 alpha=0.001;
 gamma=0.75;
 decayrate = 0.999;
-N=5000
+N=1000
 mean_squared_error=zeros(N,1);
 
+delta_episode=zeros(N,1);
+delta=zeros(24,1);
 
 
-MDP = generateMap( roadBasisGridMaps, n_MiniMapBlocksPerMap, ...
-        blockSize, noCarOnRowProbability, ...
-        probabilityOfUniformlyRandomDirectionTaken, rewards );
 for episode = 1:N
     
     
     %%
+ %   rng(seed); % uncomment for same map
     currentTimeStep = 0 ;
    
+MDP = generateMap( roadBasisGridMaps, n_MiniMapBlocksPerMap, ...
+        blockSize, noCarOnRowProbability, ...
+        probabilityOfUniformlyRandomDirectionTaken, rewards );
+
     currentMap = MDP ;
     agentLocation = currentMap.Start ;
     startingLocation = agentLocation ; % Keeping record of initial location.
@@ -145,7 +149,7 @@ for episode = 1:N
         
         [ agentRewardSignal, realAgentLocation, currentTimeStep, ...
             agentMovementHistory ] = ...
-            actionMoveAgent( action_old, realAgentLocation, MDP, ...
+            actionMoveAgent( agentCommandOld, realAgentLocation, MDP, ...
             currentTimeStep, agentMovementHistory, ...
             probabilityOfUniformlyRandomDirectionTaken ) ;
         
@@ -177,9 +181,10 @@ for episode = 1:N
         error=agentRewardSignal+gamma*Q_hat_new-Q_hat_old;
         squaredError(i)=error^2;
         Delta_W= alpha*(error)*stateFeatures;
+        oldW=W;
         W(:,:,agentCommandOld)=W(:,:,agentCommandOld)+Delta_W;
         
-        
+          delta(i)= max(max(max(abs(W-oldW))));
         
         Return = Return + agentRewardSignal;
         
@@ -201,7 +206,7 @@ for episode = 1:N
         
     end
     mean_squared_error(episode)= mean(squaredError);
-    
+     delta_episode(episode)= mean(delta);
     
     currentMap = MDP ;
     agentLocation = realAgentLocation ;
@@ -212,7 +217,10 @@ for episode = 1:N
     % pause(1)
     
 end % for each episode
-W(:,:,1:2)
-Q_test1=W
+W
 
 plot(linspace(1,N,N),mean_squared_error)
+legend('MSE')
+figure 
+plot(linspace(1,N,N),delta_episode)
+legend('DeltaW sort of')

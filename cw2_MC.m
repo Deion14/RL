@@ -73,11 +73,11 @@ N=1000;
 mean_squared_error=zeros(N,1);
 rng(seed);
 delta_episode=zeros(N,1);
-delta=zeros(24,1)
+delta=zeros(24,1);
 for episode = 1:N
     
     %
-    
+    % rng(seed); uncomment for same map
     currentTimeStep = 0 ;
     MDP = generateMap( roadBasisGridMaps, n_MiniMapBlocksPerMap, ...
         blockSize, noCarOnRowProbability, ...
@@ -184,7 +184,10 @@ for episode = 1:N
     % pause(1)
     
 end % for each episode
+W(:,:,1:3)
 
-W(:,:,1:2)
 plot(linspace(1,N,N),mean_squared_error)
+legend('MSE')
+figure 
 plot(linspace(1,N,N),delta_episode)
+legend('DeltaW sort of')
